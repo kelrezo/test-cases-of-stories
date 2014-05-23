@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>test-cases-of-stories</title>
+
+    <script type="text/javascript" src="/apps/2.0rc2/sdk.js"></script>
+
+    <script type="text/javascript">
+        Rally.onReady(function () {
+                Ext.define("CustomApp",{extend:"Rally.app.TimeboxScopedApp",componentCls:"app",scopeType:"iteration",comboboxConfig:{fieldLabel:"Select an Iteration:",labelWidth:100,width:300},onScopeChange:function(){var filter=this.getContext().getTimeboxScope().getQueryFilter();filter=filter.and({property:"TestCaseStatus",operator:"<",value:"ALL_RUN_ALL_PASSING"}),Ext.create("Rally.data.WsapiDataStore",{model:"UserStory",fetch:["FormattedID","Name","TestCases","TestCaseStatus"],pageSize:100,autoLoad:!0,filters:[filter],listeners:{load:this._onDataLoaded,scope:this}})},_onDataLoaded:function(store,data){var stories=[],pendingTestCases=data.length;_.each(data,function(story){var s={FormattedID:story.get("FormattedID"),Name:story.get("Name"),_ref:story.get("_ref"),TestCaseCount:story.get("TestCases").Count,TestCaseStatus:story.get("TestCaseStatus"),TestCases:[]},testcases=story.getCollection("TestCases",{fetch:["FormattedID","LastVerdict"]});testcases.load({callback:function(records,operation,success){_.each(records,function(testcase){s.TestCases.push({_ref:testcase.get("_ref"),FormattedID:testcase.get("FormattedID"),Name:testcase.get("Name"),LastVerdict:testcase.get("LastVerdict")})},this),--pendingTestCases,0===pendingTestCases&&this._createGrid(stories)},scope:this}),stories.push(s)},this)},_createGrid:function(stories){var myStore=Ext.create("Rally.data.custom.Store",{data:stories,pageSize:100});this.grid?this.grid.reconfigure(myStore):this.grid=this.add({xtype:"rallygrid",itemId:"mygrid",store:myStore,columnCfgs:[{text:"Formatted ID",dataIndex:"FormattedID",xtype:"templatecolumn",tpl:Ext.create("Rally.ui.renderer.template.FormattedIDTemplate")},{text:"Name",dataIndex:"Name"},{text:"TestCase Count",dataIndex:"TestCaseCount"},{text:"Test Cases",dataIndex:"TestCases",minWidth:200,renderer:function(value){var html=[];return Ext.Array.each(value,function(testcase){html.push('<a href="'+Rally.nav.Manager.getDetailUrl(testcase)+'">'+testcase.FormattedID+"</a>"+" "+testcase.LastVerdict)}),html.join("</br>")}},{text:"TestCase Status",dataIndex:"TestCaseStatus",minWidth:200}]})}});
+
+            Rally.launchApp('CustomApp', {
+                name:"test-cases-of-stories",
+	            parentRepos:""
+            });
+
+        });
+    </script>
+
+
+    <style type="text/css">
+        .app {
+     /* Add app styles here */
+}
+
+    </style>
+</head>
+<body></body>
+</html>
